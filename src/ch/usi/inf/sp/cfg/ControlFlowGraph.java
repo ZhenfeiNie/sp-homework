@@ -1,11 +1,9 @@
 package ch.usi.inf.sp.cfg;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-public class ControlFlowGraph implements Dottable {
+public class ControlFlowGraph implements DiGraph {
 	public String name;
 	
 	public List<Block> blocks;
@@ -20,10 +18,16 @@ public class ControlFlowGraph implements Dottable {
 		this.blocks = new ArrayList<Block>();
 		this.edges = new ArrayList<Edge>();
 		
-		this.entry = new Block(-1);
-		this.end = new Block(-2);
 		
+	}
+	
+	public void addEntry( ) {
+		this.entry = new Block(-1);
 		this.blocks.add(entry);
+	}
+	
+	public void addEnd() {
+		this.end = new Block(-2);
 		this.blocks.add(end);
 	}
 	
@@ -59,4 +63,32 @@ public class ControlFlowGraph implements Dottable {
 		}
 		return null;
 	}
+	
+	public boolean isEntry(Block b) {
+		return this.entry == b;
+	}
+	
+	public boolean isEnd(Block b) {
+		return this.end == b;
+	}
+	
+	@Override
+	public ControlFlowGraph clone() {
+		ControlFlowGraph newCfg = new ControlFlowGraph(this.name);
+		
+		for ( int i=0; i<this.blocks.size(); i++ ) {
+			Block b = this.blocks.get(i);
+			newCfg.addBlock(b.clone());
+		}
+		
+		for ( Edge e : this.edges ) {
+			newCfg.addEdge(e.clone());
+		}
+		
+		newCfg.entry = this.entry;
+		newCfg.end = this.end;
+		
+		return newCfg;
+	}
+	
 }

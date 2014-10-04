@@ -4,9 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.util.Printer;
 
-public class Block implements Dottable {
+public class Block implements DiGraph {
 	/**
 	 * The index is the first instruction
 	 */
@@ -95,6 +94,9 @@ public class Block implements Dottable {
 		return false;
 	}
 	
+	/**
+	 * 
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if ( o instanceof Block ) {
@@ -114,13 +116,28 @@ public class Block implements Dottable {
 	
 	@Override
 	public int hashCode() {
-		
-		return 0;
+		int result = index*index;
+		for ( int i=0; i<this.indices.size(); i++ ) {
+			result = this.indices.get(i).hashCode() + i;
+		}
+		return result;
 	}
 	
 	@Override
 	public String toString() {
 		return this.getTitle();
+	}
+	
+	@Override
+	public Block clone() {
+		Block newBlock = new Block(this.index);
+		
+		for ( int i=0; i<this.instructions.size(); i++ ) {
+			AbstractInsnNode ain = this.instructions.get(i);
+			newBlock.addInstruction(ain, this.indices.get(i));
+		}
+		
+		return newBlock;
 	}
 
 }

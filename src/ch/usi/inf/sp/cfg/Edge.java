@@ -1,6 +1,6 @@
 package ch.usi.inf.sp.cfg;
 
-public class Edge implements Dottable {
+public class Edge implements DiGraph {
 
 	public Block start;
 	public Block end;
@@ -42,8 +42,17 @@ public class Edge implements Dottable {
 	
 	@Override
 	public int hashCode() {
-		
-		return 0;
+		int result = this.label.hashCode();
+		result += this.start.hashCode();
+		result -= this.start.toString().hashCode();
+		result += this.end.hashCode();
+		result -= this.end.toString().hashCode();
+		return result;
 	}
 
+	@Override
+	public Edge clone() {
+		Edge e = new Edge(this.start, this.end, "");
+		return e;
+	}
 }

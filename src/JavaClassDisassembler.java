@@ -1,5 +1,6 @@
 
 
+import java.awt.Label;
 import java.io.FileInputStream;
 import java.util.List;
 
@@ -14,11 +15,13 @@ import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.util.Printer;
@@ -87,7 +90,7 @@ public final class JavaClassDisassembler {
 
 	public static void main(final String[] args) throws Exception {
 		// create a ClassReader that loads the Java .class file specified as the command line argument
-		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/TestClass1.class";//args[0];
+		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/ExampleClass.class";//args[0];
 		final ClassReader cr = new ClassReader(new FileInputStream(classFileName));
 		// create an empty ClassNode (in-memory representation of a class)
 		final ClassNode clazz = new ClassNode();
@@ -110,11 +113,37 @@ public final class JavaClassDisassembler {
 	
 	public void disassembleMethod(final MethodNode method) {
 		System.out.println("  Method: "+method.name+method.desc);
+		
+		if ( ! (method.name+method.desc).equals("foo()V") ) {
+			return;
+		}
+		
 		// get the list of all instructions in that method
 		final InsnList instructions = method.instructions;
 		for (int i=0; i<instructions.size(); i++) {
 			final AbstractInsnNode instruction = instructions.get(i);
 			disassembleInstruction(instruction, i, instructions);
+		}
+		
+		System.out.println("\n=====\n");
+//		for ( int i=0; i<method.exceptions.size(); i++ ) {
+//			System.out.println(":::::: " + method.exceptions.size() + " -- " + method.exceptions.get(i));
+//		}
+		
+		System.out.println("------- try catch blocks");
+		List<TryCatchBlockNode> tcb = method.tryCatchBlocks;
+		for ( int i=0; i<tcb.size(); i++ ) {
+			LabelNode start, end, handler;
+			String type;
+			start = tcb.get(i).start;
+			end = tcb.get(i).end;
+			handler = tcb.get(i).handler;
+			type = tcb.get(i).type;
+			System.out.println("Start  : " + start.getLabel().toString());
+			System.out.println("End    : " + end.getLabel().toString());
+			System.out.println("Handler: " + handler.getLabel().toString());
+			System.out.println("Type   : " + type);
+			System.out.println();
 		}
 	}
 	
@@ -138,10 +167,16 @@ public final class JavaClassDisassembler {
 		// or we can use:
 		//   if (instruction instanceof LabelNode)
 		// They give the same result, but the first one can be used in a switch statement.
+		
+		
+		System.out.print( " ==> " + instruction.LABEL );
+		
 		switch (instruction.getType()) {
 		case AbstractInsnNode.LABEL: 
 			// pseudo-instruction (branch or exception target)
-			System.out.print("// label");
+			System.out.print("// label:  ");
+//			LabelNode l = (LabelNode)instruction;
+//			System.out.print( " " + l.getLabel().toString() );
 			break;
 		case AbstractInsnNode.FRAME:
 			// pseudo-instruction (stack frame map)

@@ -1,94 +1,45 @@
 package ch.usi.inf.sp.cfg;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.IincInsnNode;
 import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LookupSwitchInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.MultiANewArrayInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
-import org.objectweb.asm.tree.TypeInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.util.Printer;
 
 public class ControlFlowGraphCreator {
-	boolean [] flags;
 	
-	ControlFlowGraph cfg = new ControlFlowGraph("Hello");
-	/**
-	 * @param args
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
-	 */
-	public static void main(String[] args) throws FileNotFoundException, IOException {
-		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/ExampleClass.class";//args[0];
-		final String methodNameAndDescriptor = "forMethod(I)I";//args[1];
-		final ClassReader cr = new ClassReader(new FileInputStream(classFileName));
-		final ClassNode clazz = new ClassNode();
-		cr.accept(clazz, 0);
-		
-		final List<MethodNode> methods = clazz.methods;
-		
-		final ControlFlowGraphCreator creator = new ControlFlowGraphCreator();
-		
-		
-		for (MethodNode m : methods) {
-			final String methodNAD = m.name + m.desc;
-			if ( methodNameAndDescriptor.equals(methodNAD) ) {
-				creator.createGraph(m);
-			}
-		}
-		
-		System.out.println( creator.cfg.generateDot() );
-		
-		
+	public ControlFlowGraph create(MethodNode methodNode) {
+		ControlFlowGraph cfg = new ControlFlowGraph(methodNode.name + methodNode.desc);
+		cfg.addEntry();
+		cfg.addEnd();
+		return createGraph(methodNode, cfg);
 	}
 	
-	public void createGraph(MethodNode methodNode) {
+	public ControlFlowGraph createGraph(MethodNode methodNode, ControlFlowGraph cfg) {
 		System.out.println("==> Ready for : "+ methodNode.name + methodNode.desc);
-		divideBlocks(methodNode);
-		
-//		for ( int i=0; i<flags.length; i++ ) {
-//			System.out.println(i + " : " + flags[i]);
-//		}
-		
-		
-		buildBlocks(methodNode);
+		boolean [] flags = divideBlocks(methodNode);
+		return buildBlocks(methodNode, flags, cfg);
 	}
 	
-	public void buildBlocks(MethodNode methodNode) {
+	public ControlFlowGraph buildBlocks(MethodNode methodNode, boolean [] flags, ControlFlowGraph cfg) {
 		InsnList instructions = methodNode.instructions;
 		Block currentBlock = null;
 		for ( int i=0; i<flags.length; i++ ) {
 			final boolean flag = flags[i];
-			
 			if ( flag == false ) {
 				System.out.println("   add " + i);
 				currentBlock.addInstruction(instructions.get(i), i);
-				
 			} else {
 				System.out.println("new " + i);
 				currentBlock = new Block(i);
 				currentBlock.addInstruction(instructions.get(i), i);
 				cfg.addBlock(currentBlock);
-				
 			}
-		
-			
 		}
 		System.out.println(cfg.blocks.size());
 		for ( int i=0; i<cfg.blocks.size(); i++ ) {
@@ -103,7 +54,6 @@ public class ControlFlowGraphCreator {
 		System.out.println("\n\n\n" );
 		
 		// edge
-		
 		for ( int i=0; i<cfg.blocks.size(); i++) {
 			Block b = cfg.blocks.get(i);
 			AbstractInsnNode ins = b.getLastInsn();
@@ -115,7 +65,6 @@ public class ControlFlowGraphCreator {
 			if ( b.index == 0 ) {
 				cfg.addEdge(new Edge(cfg.entry, b, ""));
 			}
-//			System.out.println(Tools.getMnemonic(ins));
 			switch (ins.getType()) {
 			case AbstractInsnNode.INSN:
 				if ( ins.getOpcode() == Opcodes.ATHROW ) {
@@ -130,9 +79,7 @@ public class ControlFlowGraphCreator {
 					} else {
 						cfg.addEdge( new Edge( b, cfg.end, "" ) );
 					}
-					
 				}
-				
 				break;
 			case AbstractInsnNode.JUMP_INSN:
 			{	
@@ -150,12 +97,13 @@ public class ControlFlowGraphCreator {
 				} else {
 					//
 				}
-				
 				break;
 			}
 			case AbstractInsnNode.LOOKUPSWITCH_INSN:
 			{
+				@SuppressWarnings("rawtypes")
 				final List keys = ((LookupSwitchInsnNode)ins).keys;
+				@SuppressWarnings("rawtypes")
 				final List labels = ((LookupSwitchInsnNode)ins).labels;
 				for (int t=0; t<keys.size(); t++) {
 					final LabelNode targetInstruction = (LabelNode)labels.get(t);
@@ -167,7 +115,6 @@ public class ControlFlowGraphCreator {
 					} else {
 						//
 					}
-					
 				}
 				final LabelNode defaultTargetInstruction = ((LookupSwitchInsnNode)ins).dflt;
 				final int defaultTargetId = instructions.indexOf(defaultTargetInstruction);
@@ -178,13 +125,14 @@ public class ControlFlowGraphCreator {
 				} else {
 					//
 				}
-				
 				break;
 			}
 			case AbstractInsnNode.TABLESWITCH_INSN:
 				// Opcodes: TABLESWITCH.
 			{
+				@SuppressWarnings("rawtypes")
 				final List keys = ((LookupSwitchInsnNode)ins).keys;
+				@SuppressWarnings("rawtypes")
 				final List labels = ((TableSwitchInsnNode)ins).labels;
 				for (int t=0; t<labels.size(); t++) {
 					final LabelNode targetInstruction = (LabelNode)labels.get(t);
@@ -206,7 +154,6 @@ public class ControlFlowGraphCreator {
 				} else {
 					//
 				}
-				
 				break;
 			}
 			default:
@@ -219,11 +166,12 @@ public class ControlFlowGraphCreator {
 			}		
 		}
 		
-		
+		return cfg;
 	}
 	
-	public void divideBlocks(MethodNode methodNode) {
+	public boolean[] divideBlocks(MethodNode methodNode) {
 		InsnList instructions = methodNode.instructions;
+		boolean [] flags;
 		flags = new boolean[instructions.size()];
 		
 		for ( int i=1; i<instructions.size(); i++ ) {
@@ -233,7 +181,6 @@ public class ControlFlowGraphCreator {
 		
 		for ( int i=0; i<instructions.size(); i++ ) {
 			AbstractInsnNode ins = instructions.get(i);
-			
 			switch (ins.getType()) {
 			case AbstractInsnNode.INSN:
 				// Opcodes: NOP, ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1, ICONST_2,
@@ -256,14 +203,11 @@ public class ControlFlowGraphCreator {
 						flags[i+1] = true;
 					}
 				}
-				
 				if ( ins.getType() >= Opcodes.IRETURN && ins.getType() <= Opcodes.RETURN ) {
 					if ( i < instructions.size() - 1 ) {
-//						cfg.addBlock(new Block(i+1));
 						flags[i+1] = true;
 					}
 				}
-				
 				break;
 			case AbstractInsnNode.JUMP_INSN:
 				// Opcodes: IFEQ, IFNE, IFLT, IFGE, IFGT, IFLE, IF_ICMPEQ,
@@ -274,7 +218,6 @@ public class ControlFlowGraphCreator {
 				final int targetId = instructions.indexOf(targetInstruction);
 				flags[targetId] = true;
 				if ( i < instructions.size() - 1 ) {
-//					cfg.addBlock(new Block(i+1));
 					flags[i+1] = true;
 				}
 				break;
@@ -282,42 +225,40 @@ public class ControlFlowGraphCreator {
 			case AbstractInsnNode.LOOKUPSWITCH_INSN:
 				// Opcodes: LOOKUPSWITCH.
 			{
+				@SuppressWarnings("rawtypes")
 				final List keys = ((LookupSwitchInsnNode)ins).keys;
+				@SuppressWarnings("rawtypes")
 				final List labels = ((LookupSwitchInsnNode)ins).labels;
 				for (int t=0; t<keys.size(); t++) {
 					final LabelNode targetInstruction = (LabelNode)labels.get(t);
 					final int targetId = instructions.indexOf(targetInstruction);
 					flags[targetId] = true;
-//					cfg.addBlock(new Block(targetId));
 					
 				}
 				final LabelNode defaultTargetInstruction = ((LookupSwitchInsnNode)ins).dflt;
 				final int defaultTargetId = instructions.indexOf(defaultTargetInstruction);
 				flags[defaultTargetId] = true;
-//				cfg.addBlock(new Block(defaultTargetId));
 				break;
 			}
 			case AbstractInsnNode.TABLESWITCH_INSN:
 				// Opcodes: TABLESWITCH.
 			{
+				@SuppressWarnings("rawtypes")
 				final List labels = ((TableSwitchInsnNode)ins).labels;
 				for (int t=0; t<labels.size(); t++) {
 					final LabelNode targetInstruction = (LabelNode)labels.get(t);
 					final int targetId = instructions.indexOf(targetInstruction);
 					flags[targetId] = true;
-//					cfg.addBlock(new Block(targetId));
 				}
 				final LabelNode defaultTargetInstruction = ((TableSwitchInsnNode)ins).dflt;
 				final int defaultTargetId = instructions.indexOf(defaultTargetInstruction);
 				flags[defaultTargetId] = true;
-//				cfg.addBlock(new Block(defaultTargetId));
 				break;
 			}
 			}		
 		}
+		return flags;
 	}
-	
-	
 	
 	public void takeCareOfExceptions(MethodNode methodNode) {
 		InsnList instructions = methodNode.instructions;
@@ -376,7 +317,4 @@ public class ControlFlowGraphCreator {
 			}
 		}
 	}
-	
-	
-
 }
