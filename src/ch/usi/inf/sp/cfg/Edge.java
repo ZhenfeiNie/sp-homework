@@ -1,5 +1,10 @@
 package ch.usi.inf.sp.cfg;
 
+/**
+ * 
+ * @author niezhenfei
+ *
+ */
 public class Edge implements DiGraph {
 
 	public Block start;
@@ -14,7 +19,6 @@ public class Edge implements DiGraph {
 	
 	@Override
 	public String generateDot() {
-		
 		StringBuffer sb = new StringBuffer();
 		sb.append(start + " -> " + end);
 		 
@@ -24,9 +28,6 @@ public class Edge implements DiGraph {
 			sb.append("\"]");
 		}
 		sb.append("\n");		
-		
-		
-		
 		return sb.toString();
 	}
 	

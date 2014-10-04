@@ -16,13 +16,50 @@ public class ZNDominatorAnalysis implements DominatorAnalysis {
 		private static final long serialVersionUID = 6215915712030639613L;
 	}
 
+	/**
+	 * 
+	 */
 	@Override
 	public DiGraph analyse(DiGraph input) throws DiGraphIsNotCFGException {
 		if ( ! ( input instanceof ControlFlowGraph ) ) {
 			throw new DiGraphIsNotCFGException();
 		}
-		ControlFlowGraph cfg = (ControlFlowGraph)input;
+		ControlFlowGraph cfg = (ControlFlowGraph)input;	
+		Map<Block, Set<Block>> dominatorSets = initDoms(cfg);
 		
+		boolean isChanged = true;
+		while ( isChanged ) {
+			isChanged = false;
+			for ( final Block b : cfg.blocks ) {
+				if ( cfg.isEntry(b) ) {
+					continue;
+				}
+				
+				// @1 Get all the predecessors
+				Set<Block> predecessors = getImmediatePredecessors(b, cfg);
+				Set<Block> newDoms = new HashSet<Block>(cfg.blocks);
+				Set<Block> doms = dominatorSets.get(b);
+				
+				// @2 let b's doms = [ INTERSECT all the predecessors' doms then UNION b itself ]
+				for ( Block pred : predecessors ) {
+					newDoms = calcuteIntersetion(newDoms, dominatorSets.get(pred));
+				}
+				newDoms.add(b);
+				
+				// @3 if b's dom is changed, let isChanged = true
+				isChanged = gotChanged(doms, newDoms);
+				dominatorSets.put(b, newDoms);
+			}
+		}
+		return buildDominatorTree(dominatorSets, cfg);
+	}
+	
+	/**
+	 * Simply initialize all the blocks' dom
+	 * @param cfg
+	 * @return
+	 */
+	public Map<Block, Set<Block>> initDoms(ControlFlowGraph cfg) {
 		Map<Block, Set<Block>> dominatorSets = new HashMap<Block, Set<Block>>();
 		Set<Block> domOfEntry = new HashSet<Block>();
 		domOfEntry.add(cfg.entry);
@@ -37,59 +74,28 @@ public class ZNDominatorAnalysis implements DominatorAnalysis {
 			doms.addAll(cfg.blocks);
 			dominatorSets.put(b, doms);
 		}
-		
-		boolean isChanged = true;
-		while ( isChanged ) {
-			isChanged = false;
-			
-			for ( final Block b : cfg.blocks ) {
-				if ( cfg.isEntry(b) || cfg.isEnd(b) ) {
-					continue;
-				}
-				
-				// @1 Get all the predecessors
-				Set<Block> predecessors = getImmediatePredecessors(b, cfg);
-				Set<Block> newDoms = new HashSet<Block>();
-				Set<Block> doms = dominatorSets.get(b);
-				
-				// @2 let b's doms = [ INTERSECT all the predecessors' doms then UNION b itself ]
-				for ( Block pred : predecessors ) {
-					newDoms = calcuteIntersetion(newDoms, dominatorSets.get(pred));
-				}
-				newDoms.add(b);
-				
-				// @3 if b is changed, let isChanged = true
-				isChanged = gotChanged(doms, newDoms);
-				dominatorSets.put(b, newDoms);
-			}
-		}
-		
-		return buildDominatorTree(dominatorSets, cfg);
+		return dominatorSets;
 	}
 	
 	/**
-	 * Remove all the back-edge.
+	 * Remove all the back-edges.
 	 * @param dominatorSets
 	 * @param cfg
 	 * @return
 	 */
 	public ControlFlowGraph buildDominatorTree( Map<Block, Set<Block>> dominatorSets, ControlFlowGraph cfg ) {
 		ControlFlowGraph dt = cfg.clone();
-		System.out.println("+++++++++");
+		
+		Set<Edge> domEdges = new HashSet<Edge>();
+		for (Block b : dominatorSets.keySet()) {
+			for ( Block dom : dominatorSets.get(b) ) {
+				domEdges.add(new Edge(dom, b, ""));
+			}
+		}
 		Iterator<Edge> it = dt.edges.iterator();
 		while ( it.hasNext() ) {
 			Edge e = it.next();
-			Block b = e.end;
-			boolean flag = true;
-			
-			for ( Block dom : dominatorSets.get(b) ) {
-				Edge de = new Edge(dom, b, "");
-				if ( e == de ) {
-					flag = false;
-					break;
-				}
-			}
-			if ( flag == true ) {
+			if ( ! domEdges.contains(e) ) {
 				it.remove();
 			}
 		}
@@ -109,7 +115,7 @@ public class ZNDominatorAnalysis implements DominatorAnalysis {
 			if ( e instanceof ExceptionEdge ) {
 				continue;
 			}
-			if ( e.end == b  ) {
+			if ( e.end.equals(b)  ) {
 				predecessors.add(e.start);
 			}
 		}
@@ -145,19 +151,16 @@ public class ZNDominatorAnalysis implements DominatorAnalysis {
 		if ( doms.size() != newDoms.size() ) {
 			return true;
 		}
-		
 		for ( Block dom : doms ) {
 			if ( ! newDoms.contains(dom) ) {
 				return true;
 			}
 		}
-		
 		for ( Block dom : newDoms ) {
 			if ( ! doms.contains(dom) ) {
 				return true;
 			}
 		}
-		
 		return false;
 	}
 	

@@ -39,9 +39,8 @@ public class Client {
 		DominatorAnalysis da = new ZNDominatorAnalysis();
 		DiGraph dt =  da.analyse(cfg);
 		System.out.println( dt.generateDot() );
+
 		
-
-
 	}
 
 }

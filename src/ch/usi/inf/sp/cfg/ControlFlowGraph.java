@@ -44,10 +44,12 @@ public class ControlFlowGraph implements DiGraph {
 		StringBuffer sb = new StringBuffer();
 		
 		for ( Block b : this.blocks ) {
+			sb.append("    ");
 			sb.append( b.generateDot() );
 		}
 		
 		for ( Edge e : this.edges ) {
+			sb.append("    ");
 			sb.append( e.generateDot() );
 		}
 		

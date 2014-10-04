@@ -1,5 +1,10 @@
 package ch.usi.inf.sp.cfg;
 
+/**
+ * 
+ * @author niezhenfei
+ *
+ */
 public class ExceptionEdge extends Edge {
 
 	public ExceptionEdge(Block start, Block end, String label) {
