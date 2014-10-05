@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.InsnList;
 
 public class Block implements DiGraph {
 	/**
@@ -12,6 +13,8 @@ public class Block implements DiGraph {
 	public int index;
 	
 	public List<AbstractInsnNode> instructions;
+	
+	public InsnList originList;
 	
 	/**
 	 * line number of every instuctions
@@ -23,6 +26,7 @@ public class Block implements DiGraph {
 		instructions = new LinkedList<AbstractInsnNode>();
 		this.indices = new LinkedList<Integer>();
 		
+		originList = null;
 	}
 	
 	/**
@@ -69,7 +73,7 @@ public class Block implements DiGraph {
 		}
 		boolean flag = false;
 		for ( int i=0; i<this.instructions.size(); i++ ) {
-			String mnemonic = Tools.getMnemonic(this.instructions.get(i));
+			String mnemonic = Tools.getMnemonic(this.instructions.get(i), this.originList);
 			if ( mnemonic == null ) {
 				continue;
 			}
@@ -135,6 +139,7 @@ public class Block implements DiGraph {
 		for ( int i=0; i<this.instructions.size(); i++ ) {
 			AbstractInsnNode ain = this.instructions.get(i);
 			newBlock.addInstruction(ain, this.indices.get(i));
+			newBlock.originList = this.originList;
 		}
 		
 		return newBlock;

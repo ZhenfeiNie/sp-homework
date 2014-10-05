@@ -8,6 +8,7 @@ public class ControlFlowGraph implements DiGraph {
 	
 	public List<Block> blocks;
 	public List<Edge> edges;
+	public List<ExceptionEdge> exceptionEdges;
 	
 	public Block entry;
 	public Block end;
@@ -17,6 +18,7 @@ public class ControlFlowGraph implements DiGraph {
 		
 		this.blocks = new ArrayList<Block>();
 		this.edges = new ArrayList<Edge>();
+		this.exceptionEdges = new ArrayList<ExceptionEdge>();
 		
 		
 	}

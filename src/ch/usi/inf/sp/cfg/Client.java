@@ -16,8 +16,8 @@ public class Client {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/ExampleClass.class";//args[0];
-		final String methodNameAndDescriptor = "forMethod(I)I";//args[1];
+		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/Test2.class";//args[0];
+		final String methodNameAndDescriptor = "bar()V";//args[1];
 		final ClassReader cr = new ClassReader(new FileInputStream(classFileName));
 		final ClassNode clazz = new ClassNode();
 		cr.accept(clazz, 0);

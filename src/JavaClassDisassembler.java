@@ -90,7 +90,7 @@ public final class JavaClassDisassembler {
 
 	public static void main(final String[] args) throws Exception {
 		// create a ClassReader that loads the Java .class file specified as the command line argument
-		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/ExampleClass.class";//args[0];
+		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/Test2.class";//args[0];
 		final ClassReader cr = new ClassReader(new FileInputStream(classFileName));
 		// create an empty ClassNode (in-memory representation of a class)
 		final ClassNode clazz = new ClassNode();
@@ -104,6 +104,7 @@ public final class JavaClassDisassembler {
 	public void disassembleClass(final ClassNode clazz) {
 		System.out.println("Class: "+clazz.name);
 		// get the list of all methods in that class
+		@SuppressWarnings("unchecked")
 		final List<MethodNode> methods = clazz.methods;
 		for (int m=0; m<methods.size(); m++) {
 			final MethodNode method = methods.get(m);
@@ -114,8 +115,8 @@ public final class JavaClassDisassembler {
 	public void disassembleMethod(final MethodNode method) {
 		System.out.println("  Method: "+method.name+method.desc);
 		
-		if ( ! (method.name+method.desc).equals("foo()V") ) {
-			return;
+		if ( ! (method.name+method.desc).equals("bar()V") ) {
+//			return;
 		}
 		
 		// get the list of all instructions in that method
@@ -125,12 +126,13 @@ public final class JavaClassDisassembler {
 			disassembleInstruction(instruction, i, instructions);
 		}
 		
-		System.out.println("\n=====\n");
+//		System.out.println("\n=====\n");
 //		for ( int i=0; i<method.exceptions.size(); i++ ) {
 //			System.out.println(":::::: " + method.exceptions.size() + " -- " + method.exceptions.get(i));
 //		}
 		
 		System.out.println("------- try catch blocks");
+		@SuppressWarnings("unchecked")
 		List<TryCatchBlockNode> tcb = method.tryCatchBlocks;
 		for ( int i=0; i<tcb.size(); i++ ) {
 			LabelNode start, end, handler;
@@ -139,9 +141,9 @@ public final class JavaClassDisassembler {
 			end = tcb.get(i).end;
 			handler = tcb.get(i).handler;
 			type = tcb.get(i).type;
-			System.out.println("Start  : " + start.getLabel().toString());
-			System.out.println("End    : " + end.getLabel().toString());
-			System.out.println("Handler: " + handler.getLabel().toString());
+			System.out.println("Start  : " + instructions.indexOf(start));
+			System.out.println("End    : " + instructions.indexOf(end));
+			System.out.println("Handler: " + instructions.indexOf(handler));
 			System.out.println("Type   : " + type);
 			System.out.println();
 		}
@@ -155,6 +157,7 @@ public final class JavaClassDisassembler {
 	 * shows the list of all opcodes that are represented as instructions of type IntInsnNode.
 	 * That list e.g. includes the BIPUSH opcode.
 	 */
+	@SuppressWarnings("static-access")
 	public void disassembleInstruction(final AbstractInsnNode instruction, final int i, final InsnList instructions) {
 		final int opcode = instruction.getOpcode();
 		final String mnemonic = opcode==-1?"":Printer.OPCODES[instruction.getOpcode()];
@@ -169,22 +172,22 @@ public final class JavaClassDisassembler {
 		// They give the same result, but the first one can be used in a switch statement.
 		
 		
-		System.out.print( " ==> " + instruction.LABEL );
+//		System.out.print( " ==> " + instruction.LABEL );
 		
 		switch (instruction.getType()) {
 		case AbstractInsnNode.LABEL: 
 			// pseudo-instruction (branch or exception target)
-			System.out.print("// label:  ");
+			System.out.print("    // label:  ");
 //			LabelNode l = (LabelNode)instruction;
 //			System.out.print( " " + l.getLabel().toString() );
 			break;
 		case AbstractInsnNode.FRAME:
 			// pseudo-instruction (stack frame map)
-			System.out.print("// stack frame map");
+			System.out.print("    // stack frame map");
 			break;
 		case AbstractInsnNode.LINE:
 			// pseudo-instruction (line number information)
-			System.out.print("// line number information");
+			System.out.print("    // line number information");
 		case AbstractInsnNode.INSN:
 			// Opcodes: NOP, ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1, ICONST_2,
 		    // ICONST_3, ICONST_4, ICONST_5, LCONST_0, LCONST_1, FCONST_0,
@@ -267,7 +270,9 @@ public final class JavaClassDisassembler {
 		case AbstractInsnNode.LOOKUPSWITCH_INSN:
 			// Opcodes: LOOKUPSWITCH.
 		{
+			@SuppressWarnings("rawtypes")
 			final List keys = ((LookupSwitchInsnNode)instruction).keys;
+			@SuppressWarnings("rawtypes")
 			final List labels = ((LookupSwitchInsnNode)instruction).labels;
 			for (int t=0; t<keys.size(); t++) {
 				final int key = (Integer)keys.get(t);
@@ -284,6 +289,7 @@ public final class JavaClassDisassembler {
 			// Opcodes: TABLESWITCH.
 		{
 			final int minKey = ((TableSwitchInsnNode)instruction).min;
+			@SuppressWarnings("rawtypes")
 			final List labels = ((TableSwitchInsnNode)instruction).labels;
 			for (int t=0; t<labels.size(); t++) {
 				final int key = minKey+t;

@@ -37,10 +37,12 @@ public class ControlFlowGraphCreator {
 			} else {
 				System.out.println("new " + i);
 				currentBlock = new Block(i);
+				currentBlock.originList = instructions;
 				currentBlock.addInstruction(instructions.get(i), i);
 				cfg.addBlock(currentBlock);
 			}
 		}
+		// Just print
 		System.out.println(cfg.blocks.size());
 		for ( int i=0; i<cfg.blocks.size(); i++ ) {
 			Block b = cfg.blocks.get(i);
@@ -48,7 +50,7 @@ public class ControlFlowGraphCreator {
 			for ( int j=0; j<b.instructions.size(); j++)  {
 				AbstractInsnNode ins = b.instructions.get(j);
 				int index = b.indices.get(j);
-				System.out.println("    " + index + " : " + Tools.getMnemonic(ins));
+				System.out.println("    " + index + " : " + Tools.getMnemonic(ins, b.originList));
 			}
 		}
 		System.out.println("\n\n\n" );
