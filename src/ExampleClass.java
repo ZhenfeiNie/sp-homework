@@ -9,7 +9,25 @@
  * @author Matthias.Hauswirth@unisi.ch
  */
 public class ExampleClass {
-	
+	public void throwException() {
+		try {
+			ifMethod(0);
+		} catch (Exception e) {
+			throw new RuntimeException();
+		}
+	}
+
+	public void throwExceptionNested() {
+		try {
+			ifMethod(0);
+		} catch (NullPointerException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException();
+		} finally {
+			ifElseMethod(0);
+		}
+	}
 	//--- conditionals
 	public int ifMethod(int i) {
 		int j = 0;

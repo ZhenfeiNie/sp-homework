@@ -88,7 +88,7 @@ public class Block implements DiGraph {
 			sb.append(" }");
 		} 
 		sb.append("\"]\n");
-		return sb.toString();
+		return sb.toString().replace('<', ' ').replace('>', ' ');
 	}
 	
 	public boolean contains( int index ) {

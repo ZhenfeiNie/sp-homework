@@ -41,6 +41,12 @@ public class ControlFlowGraph implements DiGraph {
 		this.edges.add(e);
 	}
 	
+	public void addExceptionEdge(ExceptionEdge e) {
+		if ( ! this.exceptionEdges.contains(e) ) {
+			this.exceptionEdges.add(e);
+		}
+	}
+	
 	@Override
 	public String generateDot() {
 		StringBuffer sb = new StringBuffer();
@@ -53,6 +59,11 @@ public class ControlFlowGraph implements DiGraph {
 		for ( Edge e : this.edges ) {
 			sb.append("    ");
 			sb.append( e.generateDot() );
+		}
+		
+		for ( ExceptionEdge exEdge : this.exceptionEdges ) {
+			sb.append("    ");
+			sb.append( exEdge.generateDot() );
 		}
 		
 		return sb.toString();

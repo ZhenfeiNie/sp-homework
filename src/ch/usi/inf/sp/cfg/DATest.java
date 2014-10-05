@@ -25,7 +25,7 @@ public class DATest {
 		
 		@SuppressWarnings("unchecked")
 		final List<MethodNode> methods = clazz.methods;
-		final ControlFlowGraphCreator creator = new ControlFlowGraphCreator();
+		final ControlFlowGraphExtractor creator = new ControlFlowGraphExtractor();
 		ControlFlowGraph cfg = null;
 		for (MethodNode m : methods) {
 			final String methodNAD = m.name + m.desc;

@@ -13,20 +13,17 @@ public class ExceptionEdge extends Edge {
 
 	@Override
 	public String generateDot() {
-		return null;
-	}
-	
-	@Override
-	public boolean equals(Object o) {
-		if ( o instanceof ExceptionEdge ) {
-			
+		StringBuffer sb = new StringBuffer();
+		sb.append(start + " -> " + end);
+		sb.append("[style=\"dotted\"");
+		if ( ! label.isEmpty() ) {
+			sb.append(", label=\"");
+			sb.append(this.label);
+			sb.append("\"");
 		}
-		return false;
+		sb.append("]");
+		sb.append("\n");		
+		return sb.toString();
 	}
 	
-	@Override
-	public int hashCode() {
-		
-		return 0;
-	}
 }

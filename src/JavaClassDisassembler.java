@@ -90,7 +90,7 @@ public final class JavaClassDisassembler {
 
 	public static void main(final String[] args) throws Exception {
 		// create a ClassReader that loads the Java .class file specified as the command line argument
-		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/Test2.class";//args[0];
+		final String classFileName = "/Users/niezhenfei/Documents/JavaWorkspace/SPLA03/bin/ExampleClass.class";//args[0];
 		final ClassReader cr = new ClassReader(new FileInputStream(classFileName));
 		// create an empty ClassNode (in-memory representation of a class)
 		final ClassNode clazz = new ClassNode();

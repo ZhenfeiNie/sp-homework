@@ -2,7 +2,7 @@
 public class Test2 {
 
 	
-	public void bar() {
+	public void bar() throws Exception{
 //		int ghouan = 0;
 //		try {
 //			ghouan = 3 / ghouan;
@@ -13,8 +13,8 @@ public class Test2 {
 //		}
 		
 		try {
-			m(new NullPointerException());
-		} catch ( Exception e ) {
+			m(new Exception());
+		} catch ( NullPointerException e ) {
 			System.out.println( "catch" );
 		} finally {
 			System.out.println( "finally" );
@@ -26,5 +26,12 @@ public class Test2 {
 	
 	public void m(Exception ex) throws Exception {
         throw ex;
+	}
+	
+	
+	public static void main (String args[]) throws Exception {
+		Test2 t = new Test2();
+		t.bar();
+		System.out.println();
 	}
 }
