@@ -15,16 +15,12 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
 
-import ch.usi.inf.sp.cfg.ExceptionTable.ExceptionEntry;
-
 /**
- * Two steps to add ex-edges:
- * 1) iterator the isns list, check every insn
- * 2) iterator the ex-table, check every entry
+ * 
  * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  *
  */
-public class ControlFlowGraphExtractor {
+public class CopyOfControlFlowGraphExtractor {
 	/**
 	 * The exception table.
 	 */
@@ -36,7 +32,7 @@ public class ControlFlowGraphExtractor {
 	 */
 	public Map<AbstractInsnNode, List<String>> typeMap;
 	
-	public ControlFlowGraphExtractor() {
+	public CopyOfControlFlowGraphExtractor() {
 		exceptionTable = new ExceptionTable();
 	}
 	
@@ -69,51 +65,7 @@ public class ControlFlowGraphExtractor {
 			flags[i] = flags[i] || isPEI[i];
 		}
 		
-		
-		
-		return addExEdgesFromExTable(methodNode, buildBlocks(methodNode, flags, cfg) );
-	}
-	
-	/**
-	 * 
-	 * @param methodNode
-	 * @param cfg
-	 * @return
-	 */
-	public ControlFlowGraph addExEdgesFromExTable(MethodNode methodNode, ControlFlowGraph cfg) {
-		InsnList instructions = methodNode.instructions;
-		List<ExceptionEntry> exceptionEntries = this.exceptionTable.exceptionEntries;
-		for ( ExceptionEntry entry : exceptionEntries ) {
-			final int start = entry.start;
-			final int end = entry.end;
-			final int handler = entry.handler;
-			final String type = entry.type;
-			
-			for ( int i=start; i<end; i++ ) {
-				final AbstractInsnNode ins = instructions.get(i);
-				if ( this.isPEIIns(ins) ) {
-					for ( String exType : this.typeMap.get(ins) ) {
-						Block startBlock = cfg.findBlockByInsn( instructions.indexOf(ins) );
-						// type == null means finally block
-						if ( type == null ) {
-							Block handlerBlock = cfg.findBlockByInsn(handler);
-							cfg.addExceptionEdge(new ExceptionEdge(startBlock, handlerBlock, ""));
-							// maybe add another connection from finally to end?
-							cfg.addExceptionEdge(new ExceptionEdge(handlerBlock, cfg.end, ""));
-						} else if ( type.equals("java/lang/Exception")  ) {
-							Block handlerBlock = cfg.findBlockByInsn(handler);
-							cfg.addExceptionEdge(new ExceptionEdge(startBlock, handlerBlock, "java/lang/Exception"));
-						} else if (  type.equals(exType) || type.endsWith(exType) ) {
-							Block handlerBlock = cfg.findBlockByInsn(handler);
-							cfg.addExceptionEdge(new ExceptionEdge(startBlock, handlerBlock, exType));
-						} else {
-							cfg.addExceptionEdge(new ExceptionEdge(startBlock, cfg.end, ""));
-						}
-					}
-				}
-			}
-		}
-		return cfg;
+		return buildBlocks(methodNode, flags, cfg);
 	}
 	
 	/**

@@ -84,7 +84,7 @@ public class Block implements DiGraph {
 			}
 			
 			if ( flag == true && i != 0 ) {
-				sb.append(" | ");
+				sb.append(" \\l");
 			}
 			sb.append(this.indices.get(i) + " : " + mnemonic);
 			flag = true;

@@ -27,7 +27,9 @@ public final class ExceptionTable {
 			if ( type.endsWith("Error") ) {
 				return -2;
 			} else if ( location >= start && location < end ) {
-				if ( this.type == null || this.type.equals("java/lang/Exception") ) {
+				if ( this.type == null ) {
+					return -2;
+				} else if ( this.type.equals("java/lang/Exception") ) {
 					return this.handler;
 				} else if (  this.type.equals(type) || 
 							 this.type.endsWith(type) ) {
@@ -48,14 +50,14 @@ public final class ExceptionTable {
 		}
 	}
 	
-	private List<ExceptionEntry> exceptions;
+	public List<ExceptionEntry> exceptionEntries;
 	
 	public ExceptionTable() {
-		exceptions = new ArrayList<ExceptionEntry>();
+		exceptionEntries = new ArrayList<ExceptionEntry>();
 	}
 	
 	public void add(int start, int end, int handler, String type) {
-		exceptions.add(new ExceptionEntry(start, end, handler, type));
+		exceptionEntries.add(new ExceptionEntry(start, end, handler, type));
 	}
 	
 	public int search(final int location, List<String> types) {
@@ -63,8 +65,8 @@ public final class ExceptionTable {
 	}
 	
 	public int search(final int location, String type) {
-		for ( int i=0; i<this.exceptions.size(); i++ ) {
-			ExceptionEntry e = this.exceptions.get(i);
+		for ( int i=0; i<this.exceptionEntries.size(); i++ ) {
+			ExceptionEntry e = this.exceptionEntries.get(i);
 			int handler = e.search(location, type);
 			if ( handler != -2) {
 				return handler;
@@ -76,7 +78,7 @@ public final class ExceptionTable {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		for ( ExceptionEntry ee : this.exceptions ) {
+		for ( ExceptionEntry ee : this.exceptionEntries ) {
 			sb.append(ee);
 			sb.append("\n");
 		}

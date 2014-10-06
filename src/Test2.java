@@ -32,7 +32,7 @@ public class Test2 {
 	public void throwExceptionNested() {
 		try {
 			System.out.println("try");
-			throw new NullPointerException();
+			throw new Exception();
 		} catch (NullPointerException e) {
 			System.out.println("catch NullPointerException");
 			throw e;

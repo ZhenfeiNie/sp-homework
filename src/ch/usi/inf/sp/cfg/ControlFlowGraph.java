@@ -89,6 +89,7 @@ public class ControlFlowGraph implements DiGraph {
 		return null;
 	}
 	
+	
 	public boolean isEntry(Block b) {
 		return this.entry == b;
 	}
