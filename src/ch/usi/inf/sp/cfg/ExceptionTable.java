@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
+ * The exception table of a method.
  * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  *
  */
@@ -23,12 +23,19 @@ public final class ExceptionTable {
 			this.type = type;
 		}
 		
+		/**
+		 * There is chance to optimize this method. 
+		 * @see http://boole.inf.usi.ch/sp-2014/assignments/A05.html 
+		 * @param location
+		 * @param type
+		 * @return
+		 */
 		public int search(final int location, String type) {
 			if ( type.endsWith("Error") ) {
-				return -2;
+				return -2; // -2 means the ex is not caught or it is an error
 			} else if ( location >= start && location < end ) {
 				if ( this.type == null ) {
-					return -2;
+					return this.handler;
 				} else if ( this.type.equals("java/lang/Exception") ) {
 					return this.handler;
 				} else if (  this.type.equals(type) || 
@@ -40,7 +47,6 @@ public final class ExceptionTable {
 			}
 			return -2;
 		}
-		
 		@Override
 		public String toString() {
 			return "start: " + start + "\n" + 

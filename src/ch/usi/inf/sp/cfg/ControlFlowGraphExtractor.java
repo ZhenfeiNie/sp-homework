@@ -42,8 +42,6 @@ public class ControlFlowGraphExtractor {
 	
 	public ControlFlowGraph create(MethodNode methodNode) {
 		ControlFlowGraph cfg = new ControlFlowGraph(methodNode.name);
-		cfg.addEntry();
-		cfg.addEnd();
 		return createGraph(methodNode, cfg);
 	}
 	
@@ -54,7 +52,7 @@ public class ControlFlowGraphExtractor {
 	 * @return
 	 */
 	public ControlFlowGraph createGraph(MethodNode methodNode, ControlFlowGraph cfg) {
-		System.out.println("==> Ready for : "+ methodNode.name + methodNode.desc);
+//		System.out.println("==> Ready for : "+ methodNode.name + methodNode.desc);
 		// @1 build the exception table
 		buildExceptionTable(methodNode);
 		boolean [] flags = divideBlocks(methodNode);
@@ -70,8 +68,10 @@ public class ControlFlowGraphExtractor {
 		}
 		
 		
-		
-		return addExEdgesFromExTable(methodNode, buildBlocks(methodNode, flags, cfg) );
+		return addExceptionEdges(
+					methodNode, 
+					buildBlocks(methodNode, flags, cfg) 
+				);
 	}
 	
 	/**
@@ -80,14 +80,40 @@ public class ControlFlowGraphExtractor {
 	 * @param cfg
 	 * @return
 	 */
-	public ControlFlowGraph addExEdgesFromExTable(MethodNode methodNode, ControlFlowGraph cfg) {
+	public ControlFlowGraph addExceptionEdges(MethodNode methodNode, ControlFlowGraph cfg) {
 		InsnList instructions = methodNode.instructions;
 		List<ExceptionEntry> exceptionEntries = this.exceptionTable.exceptionEntries;
+		// Step2 : add from opcode one by one
+		for ( Block b : cfg.blocks) {
+		    AbstractInsnNode ins = b.getLastInsn();
+		    if ( ins == null ) {
+		        continue;
+		    }
+		    List<String> ex = null;
+		    if ( isPEIIns(ins) ) {
+		        ex = this.typeMap.get(ins);
+		        if ( ex != null ) {
+		            int [] handlers = new int[ex.size()]; 
+		            for ( int j=0; j<handlers.length; j++ ) {
+		                handlers[j] = this.exceptionTable.search(instructions.indexOf(ins), ex.get(j));
+		                if ( handlers[j] == -2 ) {
+		                    cfg.addExceptionEdge(new ExceptionEdge(b, cfg.end, ""));
+		                } else {
+		                    Block handlerBlock = cfg.findBlockByInsn(handlers[j]);
+		                    cfg.addExceptionEdge(new ExceptionEdge(b, handlerBlock, ex.get(j)));
+		                }
+		            }
+		        }
+		    }
+		}
+				
+		
+		// Step1 : add from exTable
 		for ( ExceptionEntry entry : exceptionEntries ) {
 			final int start = entry.start;
 			final int end = entry.end;
 			final int handler = entry.handler;
-			final String type = entry.type;
+			final String typeCanCatch = entry.type;
 			
 			for ( int i=start; i<end; i++ ) {
 				final AbstractInsnNode ins = instructions.get(i);
@@ -95,15 +121,14 @@ public class ControlFlowGraphExtractor {
 					for ( String exType : this.typeMap.get(ins) ) {
 						Block startBlock = cfg.findBlockByInsn( instructions.indexOf(ins) );
 						// type == null means finally block
-						if ( type == null ) {
+						if ( typeCanCatch == null ) {
 							Block handlerBlock = cfg.findBlockByInsn(handler);
 							cfg.addExceptionEdge(new ExceptionEdge(startBlock, handlerBlock, ""));
-							// maybe add another connection from finally to end?
-							cfg.addExceptionEdge(new ExceptionEdge(handlerBlock, cfg.end, ""));
-						} else if ( type.equals("java/lang/Exception")  ) {
+							// NO!: do not add another connection from finally to end
+						} else if ( typeCanCatch.equals("java/lang/Exception")  ) {
 							Block handlerBlock = cfg.findBlockByInsn(handler);
 							cfg.addExceptionEdge(new ExceptionEdge(startBlock, handlerBlock, "java/lang/Exception"));
-						} else if (  type.equals(exType) || type.endsWith(exType) ) {
+						} else if (  typeCanCatch.equals(exType) || typeCanCatch.endsWith(exType) ) {
 							Block handlerBlock = cfg.findBlockByInsn(handler);
 							cfg.addExceptionEdge(new ExceptionEdge(startBlock, handlerBlock, exType));
 						} else {
@@ -113,6 +138,8 @@ public class ControlFlowGraphExtractor {
 				}
 			}
 		}
+		
+		
 		return cfg;
 	}
 	
@@ -152,18 +179,6 @@ public class ControlFlowGraphExtractor {
 				cfg.addBlock(currentBlock);
 			}
 		}
-		// Just print
-//		System.out.println(cfg.blocks.size());
-//		for ( int i=0; i<cfg.blocks.size(); i++ ) {
-//			Block b = cfg.blocks.get(i);
-//			System.out.println(i + " ==> " + b.getTitle() );
-//			for ( int j=0; j<b.instructions.size(); j++)  {
-//				AbstractInsnNode ins = b.instructions.get(j);
-//				int index = b.indices.get(j);
-//				System.out.println("    " + index + " : " + Tools.getMnemonic(ins, b.originList));
-//			}
-//		}
-//		System.out.println("\n\n\n" );
 		
 		// connect all edges
 		for ( int i=0; i<cfg.blocks.size(); i++) {
@@ -178,26 +193,24 @@ public class ControlFlowGraphExtractor {
 				cfg.addEdge(new Edge(cfg.entry, b, ""));
 			}
 			
-			// BEGIN: connect exception edges (if any) --------------------
-			List<String> ex = null;
-			if ( isPEIIns(ins) ) {
-//				System.out.println("PEI: " + instructions.indexOf(ins) + " " + Tools.getMnemonic(ins, instructions));
-				ex = this.typeMap.get(ins);
-				if ( ex != null ) {
-//					System.out.println(Tools.getMnemonic(ins, instructions) + " " + ex.toString());
-					int [] handlers = new int[ex.size()]; 
-					for ( int j=0; j<handlers.length; j++ ) {
-						handlers[j] = this.exceptionTable.search(instructions.indexOf(ins), ex.get(j));
-						if ( handlers[j] == -2 ) {
-							cfg.addExceptionEdge(new ExceptionEdge(b, cfg.end, ""));
-						} else {
-							Block handlerBlock = cfg.findBlockByInsn(handlers[j]);
-							cfg.addExceptionEdge(new ExceptionEdge(b, handlerBlock, ex.get(j)));
-						}
-					}
-				}
-			}
-			// END  --------------------
+//			// BEGIN: connect exception edges (if any) --------------------
+//			List<String> ex = null;
+//			if ( isPEIIns(ins) ) {
+//				ex = this.typeMap.get(ins);
+//				if ( ex != null ) {
+//					int [] handlers = new int[ex.size()]; 
+//					for ( int j=0; j<handlers.length; j++ ) {
+//						handlers[j] = this.exceptionTable.search(instructions.indexOf(ins), ex.get(j));
+//						if ( handlers[j] == -2 ) {
+//							cfg.addExceptionEdge(new ExceptionEdge(b, cfg.end, ""));
+//						} else {
+//							Block handlerBlock = cfg.findBlockByInsn(handlers[j]);
+//							cfg.addExceptionEdge(new ExceptionEdge(b, handlerBlock, ex.get(j)));
+//						}
+//					}
+//				}
+//			}
+//			// END  --------------------
 			
 			// normal edges
 			switch (ins.getType()) {

@@ -25,7 +25,8 @@ public class ControlFlowGraph implements DiGraph {
 		this.edges = new ArrayList<Edge>();
 		this.exceptionEdges = new ArrayList<ExceptionEdge>();
 		
-		
+		addEntry();
+		addEnd();
 	}
 	
 	public void addEntry( ) {
@@ -76,6 +77,7 @@ public class ControlFlowGraph implements DiGraph {
 			sb.append( exEdge.generateDot() );
 		}
 		sb.append("\n}");
+		sb.append("\n");
 		return sb.toString();
 	}
 
