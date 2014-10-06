@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
+ * Represents the control flow graph.
  * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  *
  */

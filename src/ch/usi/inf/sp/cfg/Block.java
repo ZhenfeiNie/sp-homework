@@ -7,7 +7,8 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 
 /**
- * Adopt from Yudi Zheng's class "Edge".
+ * Adopt from Yudi Zheng's class "Block".
+ * @see https://github.com/zhengyudi/sp-2014
  * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  *
  */

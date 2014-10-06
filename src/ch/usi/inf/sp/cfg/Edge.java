@@ -2,6 +2,7 @@ package ch.usi.inf.sp.cfg;
 
 /**
  * Adopt from Yudi Zheng's class "Edge".
+ * @see https://github.com/zhengyudi/sp-2014/blob/master/src/ch/usi/inf/sp/cfg/Edge.java
  * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  * 
  */

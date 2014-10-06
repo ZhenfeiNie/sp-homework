@@ -278,14 +278,13 @@ public class ControlFlowGraphExtractor {
 			case AbstractInsnNode.TABLESWITCH_INSN:
 				// Opcodes: TABLESWITCH.
 			{
-				@SuppressWarnings("rawtypes")
-				final List keys = ((LookupSwitchInsnNode)ins).keys;
+				final int minKey = ((TableSwitchInsnNode)ins).min;
 				@SuppressWarnings("rawtypes")
 				final List labels = ((TableSwitchInsnNode)ins).labels;
 				for (int t=0; t<labels.size(); t++) {
+					final int key = minKey+t;
 					final LabelNode targetInstruction = (LabelNode)labels.get(t);
 					final int targetId = instructions.indexOf(targetInstruction);
-					final int key = (Integer)keys.get(t);
 					Block target = cfg.findBlockByInsn(targetId);
 					if ( target != null ) {
 						cfg.addEdge( new Edge( b, target, String.valueOf(key) ) );
