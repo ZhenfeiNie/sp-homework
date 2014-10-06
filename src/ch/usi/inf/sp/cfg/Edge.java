@@ -1,9 +1,9 @@
 package ch.usi.inf.sp.cfg;
 
 /**
+ * Adopt from Yudi Zheng's class "Edge".
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  * 
- * @author niezhenfei
- *
  */
 public class Edge implements DiGraph {
 
@@ -23,7 +23,7 @@ public class Edge implements DiGraph {
 		sb.append(start + " -> " + end);
 		 
 		if ( ! label.isEmpty() ) {
-			sb.append("[label=\"");
+			sb.append(" [label=\"");
 			sb.append(this.label);
 			sb.append("\"]");
 		}

@@ -15,10 +15,21 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.TableSwitchInsnNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
 
+/**
+ * 
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
+ *
+ */
 public class ControlFlowGraphExtractor {
-	
+	/**
+	 * The exception table.
+	 */
 	public ExceptionTable exceptionTable;
-	public boolean [] isPEI;
+
+	/**
+	 * define the relation between opcodes and exceptions
+	 * 
+	 */
 	public Map<AbstractInsnNode, List<String>> typeMap;
 	
 	public ControlFlowGraphExtractor() {
@@ -26,7 +37,7 @@ public class ControlFlowGraphExtractor {
 	}
 	
 	public ControlFlowGraph create(MethodNode methodNode) {
-		ControlFlowGraph cfg = new ControlFlowGraph(methodNode.name + methodNode.desc);
+		ControlFlowGraph cfg = new ControlFlowGraph(methodNode.name);
 		cfg.addEntry();
 		cfg.addEnd();
 		return createGraph(methodNode, cfg);
@@ -44,22 +55,15 @@ public class ControlFlowGraphExtractor {
 		buildExceptionTable(methodNode);
 		boolean [] flags = divideBlocks(methodNode);
 		
-		takeCareOfExceptions(methodNode);
-		System.out.println("-----****************-----");
+		boolean [] isPEI = takeCareOfExceptions(methodNode);
 		for ( int i=isPEI.length-1; i>=1; i-- ) {
 			isPEI[i] = isPEI[i-1];
 		}
 		isPEI[0] = false;
 		
-		for ( int i=0; i<isPEI.length; i++ ) {
-			System.out.println(i + " : " + isPEI[i]);
-		}
-		
-
 		for ( int i=0; i< isPEI.length; i++ ) {
 			flags[i] = flags[i] || isPEI[i];
 		}
-		
 		
 		return buildBlocks(methodNode, flags, cfg);
 	}
@@ -92,10 +96,8 @@ public class ControlFlowGraphExtractor {
 		for ( int i=0; i<flags.length-1; i++ ) {
 			final boolean flag = flags[i];
 			if ( flag == false ) {
-//				System.out.println("   add " + i);
 				currentBlock.addInstruction(instructions.get(i), i);
 			} else {
-//				System.out.println("new " + i);
 				currentBlock = new Block(i);
 				currentBlock.originList = instructions;
 				currentBlock.addInstruction(instructions.get(i), i);
@@ -103,19 +105,19 @@ public class ControlFlowGraphExtractor {
 			}
 		}
 		// Just print
-		System.out.println(cfg.blocks.size());
-		for ( int i=0; i<cfg.blocks.size(); i++ ) {
-			Block b = cfg.blocks.get(i);
-			System.out.println(i + " ==> " + b.getTitle() );
-			for ( int j=0; j<b.instructions.size(); j++)  {
-				AbstractInsnNode ins = b.instructions.get(j);
-				int index = b.indices.get(j);
-				System.out.println("    " + index + " : " + Tools.getMnemonic(ins, b.originList));
-			}
-		}
-		System.out.println("\n\n\n" );
+//		System.out.println(cfg.blocks.size());
+//		for ( int i=0; i<cfg.blocks.size(); i++ ) {
+//			Block b = cfg.blocks.get(i);
+//			System.out.println(i + " ==> " + b.getTitle() );
+//			for ( int j=0; j<b.instructions.size(); j++)  {
+//				AbstractInsnNode ins = b.instructions.get(j);
+//				int index = b.indices.get(j);
+//				System.out.println("    " + index + " : " + Tools.getMnemonic(ins, b.originList));
+//			}
+//		}
+//		System.out.println("\n\n\n" );
 		
-		// connect edges
+		// connect all edges
 		for ( int i=0; i<cfg.blocks.size(); i++) {
 			Block b = cfg.blocks.get(i);
 			AbstractInsnNode ins = b.getLastInsn();
@@ -128,13 +130,13 @@ public class ControlFlowGraphExtractor {
 				cfg.addEdge(new Edge(cfg.entry, b, ""));
 			}
 			
-			/// --------------------
+			// BEGIN: connect exception edges (if any) --------------------
 			List<String> ex = null;
 			if ( isPEIIns(ins) ) {
-				System.out.println("PEI: " + instructions.indexOf(ins) + " " + Tools.getMnemonic(ins, instructions));
+//				System.out.println("PEI: " + instructions.indexOf(ins) + " " + Tools.getMnemonic(ins, instructions));
 				ex = this.typeMap.get(ins);
 				if ( ex != null ) {
-					System.out.println(Tools.getMnemonic(ins, instructions) + " " + ex.toString());
+//					System.out.println(Tools.getMnemonic(ins, instructions) + " " + ex.toString());
 					int [] handlers = new int[ex.size()]; 
 					for ( int j=0; j<handlers.length; j++ ) {
 						handlers[j] = this.exceptionTable.search(instructions.indexOf(ins), ex.get(j));
@@ -147,8 +149,9 @@ public class ControlFlowGraphExtractor {
 					}
 				}
 			}
+			// END  --------------------
 			
-			/// --------------------
+			// normal edges
 			switch (ins.getType()) {
 			case AbstractInsnNode.INSN:
 				if ( ins.getOpcode() == Opcodes.ATHROW ) {
@@ -398,9 +401,9 @@ public class ControlFlowGraphExtractor {
 	}
 	
 	
-	public void takeCareOfExceptions(MethodNode methodNode) {
+	public boolean[] takeCareOfExceptions(MethodNode methodNode) {
 		InsnList instructions = methodNode.instructions;
-		isPEI = new boolean[instructions.size()];
+		boolean[] isPEI = new boolean[instructions.size()];
 		
 		typeMap = new HashMap<AbstractInsnNode, List<String>>();
 		for ( int i=0; i<instructions.size(); i++ ) {
@@ -481,7 +484,7 @@ public class ControlFlowGraphExtractor {
 			        	break;
 			        case Opcodes.GETSTATIC: // Error*, (linking)
 			        	isPEI[i] = true;
-			        	types = Arrays.asList("Error*");
+			        	types = Arrays.asList("Error");
 			        	break;
 			        case Opcodes.IALOAD: 
 			        	isPEI[i] = true;
@@ -563,7 +566,7 @@ public class ControlFlowGraphExtractor {
 			        	break;
 			        case Opcodes.NEW: // (linking)
 			        	isPEI[i] = true;
-			        	types = Arrays.asList("Error*");
+			        	types = Arrays.asList("Error");
 			        	break;
 			        case Opcodes.NEWARRAY: // 
 			        	isPEI[i] = true;
@@ -575,7 +578,7 @@ public class ControlFlowGraphExtractor {
 			        	break;
 			        case Opcodes.PUTSTATIC: // Error*, (linking)
 			        	isPEI[i] = true;
-			        	types = Arrays.asList("Error*");
+			        	types = Arrays.asList("Error");
 			        	break;
 			        case Opcodes.RETURN: //  (if synchronized)
 			        	isPEI[i] = true;
@@ -592,5 +595,6 @@ public class ControlFlowGraphExtractor {
 			}
 			typeMap.put(ins, types);
 		}
+		return isPEI;
 	}
 }

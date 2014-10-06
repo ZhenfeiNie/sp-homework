@@ -7,8 +7,12 @@
  * Java disassemblers and control-flow graph generators.
  * 
  * @author Matthias.Hauswirth@unisi.ch
+ * @author Yudi Zheng
  */
 public class ExampleClass {
+	/**
+	 * @author Yudi Zheng
+	 */
 	public void throwException() {
 		try {
 			ifMethod(0);
@@ -16,7 +20,10 @@ public class ExampleClass {
 			throw new RuntimeException();
 		}
 	}
-
+	
+	/**
+	 * @author Yudi Zheng
+	 */
 	public void throwExceptionNested() {
 		try {
 			ifMethod(0);

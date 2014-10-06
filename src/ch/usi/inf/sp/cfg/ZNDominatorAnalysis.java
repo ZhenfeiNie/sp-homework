@@ -10,6 +10,12 @@ import ch.usi.inf.sp.cfg.DiGraph;
 import ch.usi.inf.sp.cfg.Block;
 import ch.usi.inf.sp.cfg.Edge;
 
+
+/**
+ * This is a re-implemented version.
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
+ *
+ */
 public class ZNDominatorAnalysis implements DominatorAnalysis {
 
 	class DiGraphIsNotCFGException extends Exception {
@@ -51,7 +57,7 @@ public class ZNDominatorAnalysis implements DominatorAnalysis {
 				dominatorSets.put(b, newDoms);
 			}
 		}
-		return buildDominatorTree(dominatorSets, cfg);
+		return addAllExceptionEdge(cfg, buildDominatorTree(dominatorSets, cfg));
 	}
 	
 	/**
@@ -166,11 +172,14 @@ public class ZNDominatorAnalysis implements DominatorAnalysis {
 	
 	
 	/**
-	 * Placeholder for exception
+	 * Add back all the exception edges.
 	 * @return
 	 */
-	public Set<Edge> getAllExceptionEdge() {
-		return null;
+	public ControlFlowGraph addAllExceptionEdge(ControlFlowGraph cfg, ControlFlowGraph dt) {
+		for ( ExceptionEdge ee : cfg.exceptionEdges ) {
+			dt.addExceptionEdge(ee);
+		}
+		return dt;
 	}
 
 }

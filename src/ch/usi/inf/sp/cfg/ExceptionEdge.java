@@ -2,7 +2,7 @@ package ch.usi.inf.sp.cfg;
 
 /**
  * 
- * @author niezhenfei
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  *
  */
 public class ExceptionEdge extends Edge {
@@ -15,7 +15,7 @@ public class ExceptionEdge extends Edge {
 	public String generateDot() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(start + " -> " + end);
-		sb.append("[style=\"dotted\"");
+		sb.append(" [style=\"dotted\"");
 		if ( ! label.isEmpty() ) {
 			sb.append(", label=\"");
 			sb.append(this.label);

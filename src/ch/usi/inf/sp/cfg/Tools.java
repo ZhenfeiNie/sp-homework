@@ -21,7 +21,7 @@ import org.objectweb.asm.util.Printer;
 
 /**
  * 
- * @author niezhenfei
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
  *
  */
 public class Tools {

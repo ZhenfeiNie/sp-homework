@@ -3,6 +3,11 @@ package ch.usi.inf.sp.cfg;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
+ *
+ */
 public final class ExceptionTable {
 	public final class ExceptionEntry {
 		final int start;
@@ -19,13 +24,13 @@ public final class ExceptionTable {
 		}
 		
 		public int search(final int location, String type) {
-			if ( location >= start && location < end ) {
-				System.out.println("** location: " + location + "\n  " + this.type + " " + type);
+			if ( type.endsWith("Error") ) {
+				return -2;
+			} else if ( location >= start && location < end ) {
 				if ( this.type == null || this.type.equals("java/lang/Exception") ) {
 					return this.handler;
 				} else if (  this.type.equals(type) || 
 							 this.type.endsWith(type) ) {
-					
 					return this.handler;
 				} else {
 					return -2;

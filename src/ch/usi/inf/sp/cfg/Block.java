@@ -6,6 +6,11 @@ import java.util.List;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 
+/**
+ * Adopt from Yudi Zheng's class "Edge".
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
+ *
+ */
 public class Block implements DiGraph {
 	/**
 	 * The index is the first instruction

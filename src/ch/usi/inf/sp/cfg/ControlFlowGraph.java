@@ -3,6 +3,11 @@ package ch.usi.inf.sp.cfg;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 
+ * @author Zhenfei Nie <zhen.fei.nie@usi.ch>
+ *
+ */
 public class ControlFlowGraph implements DiGraph {
 	public String name;
 	
@@ -51,21 +56,26 @@ public class ControlFlowGraph implements DiGraph {
 	public String generateDot() {
 		StringBuffer sb = new StringBuffer();
 		
+		sb.append("digraph");
+		sb.append(" ");
+		sb.append(this.name);
+		sb.append(" {\n");
+		
 		for ( Block b : this.blocks ) {
 			sb.append("    ");
 			sb.append( b.generateDot() );
 		}
-		
+		sb.append("\n");
 		for ( Edge e : this.edges ) {
 			sb.append("    ");
 			sb.append( e.generateDot() );
 		}
-		
+		sb.append("\n");
 		for ( ExceptionEdge exEdge : this.exceptionEdges ) {
 			sb.append("    ");
 			sb.append( exEdge.generateDot() );
 		}
-		
+		sb.append("\n}");
 		return sb.toString();
 	}
 
